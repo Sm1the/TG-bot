@@ -1,1 +1,2 @@
-1
+pip install pytelegrambotapi
+pip install mysql-connector-python
