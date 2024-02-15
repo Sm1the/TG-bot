@@ -1,10 +1,10 @@
 import json
 import telebot
+import os
+import sys
 from telebot import types
 from pathlib import Path
 
-
-#Show DB List-> Search in DB -> 
 #Close bot
 #Restart bot
 
@@ -33,7 +33,6 @@ user_bullying = ""
 user_violence = ""
 user_sexual_violence = ""
 bulllying_counter = ""
-
 
 
 #Метод стартового меню и входа в общение с ботом
@@ -211,6 +210,8 @@ def select_user_send_file(message):
           src = bot_file_path['file_path'] + f'{message.chat.id}/' + file_info.file_path.replace('videos/', '')
           with open(src, 'wb') as new_file:
               new_file.write(downloaded_file)
+          menu_message = f"{bot_message['wait_for_download']}"
+          bot.send_message(message.chat.id, menu_message, parse_mode='html') 
           bot.register_next_step_handler(message, user_correct_file)
         else:
           file_does_not_match(message)  
@@ -242,4 +243,5 @@ def close_user_request(message):
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
 
 bot.polling(non_stop=True)
+
 
