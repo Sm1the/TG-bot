@@ -1,9 +1,10 @@
 import json
 import telebot
 from telebot import types
+from pathlib import Path
 
 
-#Show DB List
+#Show DB List-> Search in DB -> 
 #Close bot
 #Restart bot
 
@@ -179,43 +180,66 @@ def get_user_bulllying_counter(message):
     bot.register_next_step_handler(message, get_pull_user_info)
 
 def get_pull_user_info(message):
-    bulllying_counter = message.text
-    print(bulllying_counter)
+    if(message.text != bot_message['upload_file']):
+      bulllying_counter = message.text
+      print(bulllying_counter)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['pull_user_info']}"
-    markup.add(types.KeyboardButton(bot_message['upload_file']),types.KeyboardButton(bot_message['without_file']))
+    markup.add(types.KeyboardButton(bot_message['upload_file']), types.KeyboardButton(bot_message['without_file']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, select_user_send_file)
 
 def select_user_send_file(message):
+    Path(bot_file_path['file_path'] + f'{message.chat.id}/').mkdir(parents=True, exist_ok=True)
+    if message.content_type == 'photo':
+        file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
+        file_size = int(message.photo[len(message.photo) - 1].file_size)
+        if (file_size < 33554432):
+          downloaded_file = bot.download_file(file_info.file_path)
+          src = bot_file_path['file_path'] + f'{message.chat.id}/' + file_info.file_path.replace('photos/', '')
+          with open(src, 'wb') as new_file:
+              new_file.write(downloaded_file)
+          bot.register_next_step_handler(message, user_correct_file)
+        else:
+          file_does_not_match(message)   
+
+    if message.content_type == 'video':
+        file_info = bot.get_file(message.video.file_id)
+        file_size = int(message.json['video']['file_size'])
+        if (file_size < 268435456):
+          downloaded_file = bot.download_file(file_info.file_path)
+          src = bot_file_path['file_path'] + f'{message.chat.id}/' + file_info.file_path.replace('videos/', '')
+          with open(src, 'wb') as new_file:
+              new_file.write(downloaded_file)
+          bot.register_next_step_handler(message, user_correct_file)
+        else:
+          file_does_not_match(message)  
+           
     if message.text == bot_message['upload_file']:
-      handle_docs_photo(message)
+      get_pull_user_info(message)  
+      
     if message.text == bot_message['without_file']:
-      close_user_request(message)
+      file_does_not_match(message)
 
 
-@bot.message_handler(content_types=['photo', 'video'])
-def handle_docs_photo(message):
+def user_correct_file(message):
+  menu_message = f"{bot_message['correct_file']}"
+  markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+  markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
+  bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
 
-    try:
-
-
-        file_info = bot.get_file(message.photo[len(message.photo)-1].file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
-
-        src='C:/Users/apxah/Desktop/1/TG-bot/files/'+file_info.file_path
-        with open(src, 'wb') as new_file:
-           new_file.write(downloaded_file)
-        bot.reply_to(message,"Фото добавлено") 
-
-    except Exception as e:
-        bot.reply_to(message,e )
+def file_does_not_match(message):
+  menu_message = f"{bot_message['file_does_not_match']}"
+  markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+  markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
+  bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
+  
     
 def close_user_request(message):
-      markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-      menu_message = f"{bot_message['close_user_request']}"
-      markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
-      bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    menu_message = f"{bot_message['close_user_request']}"
+    markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
+    bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
 
 bot.polling(non_stop=True)
 
