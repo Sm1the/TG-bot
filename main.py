@@ -1,13 +1,13 @@
 import json
 import telebot
-import os
-import sys
+import datetime
+import pymysql
 from telebot import types
 from pathlib import Path
 
-#Close bot
-#Restart bot
-
+ 
+current_time = datetime.datetime.now().time()
+connect = None
 
 
 #Чтение ключа бота из json файла
@@ -25,6 +25,8 @@ bot = telebot.TeleBot(bot_token['token_api'])
 #
 clear_unber_buttons = telebot.types.ReplyKeyboardRemove()
 
+user_id = ""
+
 #
 user_name = ""
 user_city = ""
@@ -33,7 +35,6 @@ user_bullying = ""
 user_violence = ""
 user_sexual_violence = ""
 bulllying_counter = ""
-
 
 #Метод стартового меню и входа в общение с ботом
 @bot.message_handler(commands=['start'])
@@ -48,6 +49,8 @@ def startBot(message):
   markup.row(button_menu_3)
   bot.send_message(message.chat.id, first_message, parse_mode='html', reply_markup=markup)
   bot.register_next_step_handler(message, on_click_menu)
+  user_id = message.chat.id
+
   
 
 def on_click_menu(message):
@@ -224,12 +227,14 @@ def select_user_send_file(message):
 
 
 def user_correct_file(message):
+  write_data_base()
   menu_message = f"{bot_message['correct_file']}"
   markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
   markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
   bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
 
 def file_does_not_match(message):
+  write_data_base()
   menu_message = f"{bot_message['file_does_not_match']}"
   markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
   markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
@@ -241,7 +246,38 @@ def close_user_request(message):
     menu_message = f"{bot_message['close_user_request']}"
     markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
+ 
 
-bot.polling(non_stop=True)
+def write_data_base():   
+ # Connect to the database
+  try:
+    connect = pymysql.connect(host='localhost',
+                             user='root',
+                             password='12325800',
+                             database='safechild',
+                             charset='utf8mb4')
+
+    with connect.cursor() as cursor:
+      add_info = """insert into hfct_request ( ) value("""+int(user_id)+""" + """ + current_time + """)"""
+      sql = "INSERT INTO safechild.hfct_request ( user, date_creat ) VALUES ( %s, %s )"
+      val = [(str(user_id), str(current_time))]
+      cursor = connect.cursor()
+      cursor.executemany(sql, val)
+      connect.commit()
+      print(cursor.fetchall())
+    connect.close()
+  except Exception as ex:
+    print("Connection refused...")
+    print(ex)
+    
+  with connect.cursor() as cursor:
+    cursor.execute("""SELECT * FROM safechild.dim_request;""")
+    print(cursor.fetchall())
+  connect.close()
+
+try: 
+    bot.polling(none_stop=True, interval=1)
+except Exception:
+    print("error")
 
 
