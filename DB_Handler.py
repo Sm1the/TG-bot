@@ -25,7 +25,7 @@ def show_data_base_dim_request():
     db_list = cur.fetchall()
     out_list = ''
     for el in db_list:
-        out_list += f'id: {el[0]}, user: {el[1]}, data_create: {el[2]}\n'
+        out_list += f'attribute_id: {el[0]}, attribute_name: {el[1]}, attribute_value: {el[2]}\n'
     print(out_list)
     cur.close()
     conn.close()

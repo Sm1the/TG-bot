@@ -144,7 +144,6 @@ def get_user_school(message):
 def get_user_bullying(message):
     global user_school
     user_school = message.text.strip()
-    print(user_school)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['user_bullying']}"
     markup.add(types.KeyboardButton(bot_message['yes']),types.KeyboardButton(bot_message['no']))
@@ -155,10 +154,8 @@ def get_user_violence(message):
     global user_bullying
     if message.text == bot_message['yes']:
       user_bullying = bot_message['yes']
-      print(user_bullying)
     if message.text == bot_message['no']:
       user_bullying = bot_message['no']
-      print(user_bullying)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['user_violence']}"
     markup.add(types.KeyboardButton(bot_message['yes']),types.KeyboardButton(bot_message['no']))
@@ -169,10 +166,8 @@ def get_user_sexual_violence(message):
     global user_violence
     if message.text == bot_message['yes']:
       user_violence = bot_message['yes']
-      print(user_violence)
     if message.text == bot_message['no']:
       user_violence = bot_message['no']
-      print(user_violence)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['user_sexual_violence']}"
     markup.add(types.KeyboardButton(bot_message['yes']),types.KeyboardButton(bot_message['no']))
@@ -183,10 +178,8 @@ def get_user_bulllying_counter(message):
     global user_sexual_violence
     if message.text == bot_message['yes']:
       user_sexual_violence = bot_message['yes']
-      print(user_sexual_violence)
     if message.text == bot_message['no']:
       user_sexual_violence = bot_message['no']
-      print(user_sexual_violence)
     menu_message = f"{bot_message['bulllying_counter']}"
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_pull_user_info)
@@ -195,7 +188,6 @@ def get_pull_user_info(message):
     global bulllying_counter
     if(message.text != bot_message['upload_file']):
       bulllying_counter = message.text.strip()
-      print(bulllying_counter)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['pull_user_info']}"
     markup.add(types.KeyboardButton(bot_message['upload_file']), types.KeyboardButton(bot_message['without_file']))
