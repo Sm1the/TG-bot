@@ -1,13 +1,14 @@
 import json
 import telebot
 import datetime
-import pymysql
+import sqlite3
+
 from telebot import types
 from pathlib import Path
 
  
-current_time = datetime.datetime.now().time()
-connect = None
+
+
 
 
 #Чтение ключа бота из json файла
@@ -25,20 +26,23 @@ bot = telebot.TeleBot(bot_token['token_api'])
 #
 clear_unber_buttons = telebot.types.ReplyKeyboardRemove()
 
-user_id = ""
+user_id = None
 
 #
-user_name = ""
-user_city = ""
-user_school = ""
-user_bullying = ""
-user_violence = ""
-user_sexual_violence = ""
-bulllying_counter = ""
+user_name = None
+user_city = None
+user_school = None
+user_bullying = None
+user_violence = None
+user_sexual_violence = None
+bulllying_counter = None
 
 #Метод стартового меню и входа в общение с ботом
 @bot.message_handler(commands=['start'])
 def startBot(message):
+  start_data_base()
+  global user_id
+  user_id = message.chat.id
   markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
   first_message = f"<b>{message.from_user.first_name}</b><b>{bot_message['start_message']}</b>"
   button_menu_1 = types.KeyboardButton(text = bot_message['menu_text_1'])
@@ -49,7 +53,7 @@ def startBot(message):
   markup.row(button_menu_3)
   bot.send_message(message.chat.id, first_message, parse_mode='html', reply_markup=markup)
   bot.register_next_step_handler(message, on_click_menu)
-  user_id = message.chat.id
+
 
   
 
@@ -122,21 +126,24 @@ def get_user_name(message):
       bot.register_next_step_handler(message, get_user_city)
 
 def get_user_city(message):
-    user_name = message.text
+    global user_name
+    user_name = message.text.strip()
     menu_message = f"{bot_message['user_city']}"
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_user_school)
     print(user_name)
     
 def get_user_school(message):
-    user_city = message.text
+    global user_city
+    user_city = message.text.strip()
     menu_message = f"{bot_message['user_school']}"
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_user_bullying)
     print(user_city)
     
 def get_user_bullying(message):
-    user_school = message.text
+    global user_school
+    user_school = message.text.strip()
     print(user_school)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['user_bullying']}"
@@ -145,6 +152,7 @@ def get_user_bullying(message):
     bot.register_next_step_handler(message, get_user_violence)
    
 def get_user_violence(message):
+    global user_bullying
     if message.text == bot_message['yes']:
       user_bullying = bot_message['yes']
       print(user_bullying)
@@ -158,6 +166,7 @@ def get_user_violence(message):
     bot.register_next_step_handler(message, get_user_sexual_violence)
       
 def get_user_sexual_violence(message):
+    global user_violence
     if message.text == bot_message['yes']:
       user_violence = bot_message['yes']
       print(user_violence)
@@ -171,6 +180,7 @@ def get_user_sexual_violence(message):
     bot.register_next_step_handler(message, get_user_bulllying_counter)
     
 def get_user_bulllying_counter(message):
+    global user_sexual_violence
     if message.text == bot_message['yes']:
       user_sexual_violence = bot_message['yes']
       print(user_sexual_violence)
@@ -182,8 +192,9 @@ def get_user_bulllying_counter(message):
     bot.register_next_step_handler(message, get_pull_user_info)
 
 def get_pull_user_info(message):
+    global bulllying_counter
     if(message.text != bot_message['upload_file']):
-      bulllying_counter = message.text
+      bulllying_counter = message.text.strip()
       print(bulllying_counter)
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['pull_user_info']}"
@@ -223,7 +234,7 @@ def select_user_send_file(message):
       get_pull_user_info(message)  
       
     if message.text == bot_message['without_file']:
-      file_does_not_match(message)
+      close_user_request(message)
 
 
 def user_correct_file(message):
@@ -242,42 +253,49 @@ def file_does_not_match(message):
   
     
 def close_user_request(message):
+    write_data_base()
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['close_user_request']}"
     markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
  
 
-def write_data_base():   
+def start_data_base():
  # Connect to the database
   try:
-    connect = pymysql.connect(host='localhost',
-                             user='root',
-                             password='12325800',
-                             database='safechild',
-                             charset='utf8mb4')
+    conn = sqlite3.connect('safechild.sql')
+    cur = conn.cursor()
+    cur.execute('''CREATE TABLE IF NOT EXISTS hfct_request (id integer primary key AUTOINCREMENT, user varchar(50) not null, data_create varchar(50) not null)''')
+    cur.execute('''CREATE TABLE IF NOT EXISTS dim_request (attribute_id varchar(50), attribute_name varchar(50), attribute_value varchar(255), FOREIGN KEY (attribute_id) REFERENCES hfct_request (data_create))''')
+    conn.commit()
+    cur.close()
+    conn.close()
+  except sqlite3.Error as ex:
+    print(ex)  
 
-    with connect.cursor() as cursor:
-      add_info = """insert into hfct_request ( ) value("""+int(user_id)+""" + """ + current_time + """)"""
-      sql = "INSERT INTO safechild.hfct_request ( user, date_creat ) VALUES ( %s, %s )"
-      val = [(str(user_id), str(current_time))]
-      cursor = connect.cursor()
-      cursor.executemany(sql, val)
-      connect.commit()
-      print(cursor.fetchall())
-    connect.close()
-  except Exception as ex:
-    print("Connection refused...")
-    print(ex)
-    
-  with connect.cursor() as cursor:
-    cursor.execute("""SELECT * FROM safechild.dim_request;""")
-    print(cursor.fetchall())
-  connect.close()
+def write_data_base():  
+  current_time = datetime.datetime.now() 
+   # Connect to the database
+  try:
+    conn = sqlite3.connect('safechild.sql')
+    cur = conn.cursor()
+    cur.execute("INSERT INTO hfct_request (user, data_create) VALUES ('%s', '%s')" % (user_id, current_time))
+    cur.execute("INSERT INTO dim_request (attribute_id, attribute_name, attribute_value) VALUES ('%s', '%s', '%s')" % (current_time, bot_message['user_name'], user_name)) 
+    cur.execute("INSERT INTO dim_request (attribute_id, attribute_name, attribute_value) VALUES ('%s', '%s', '%s')" % (current_time, bot_message['user_city'], user_city)) 
+    cur.execute("INSERT INTO dim_request (attribute_id, attribute_name, attribute_value) VALUES ('%s', '%s', '%s')" % (current_time, bot_message['user_school'], user_school)) 
+    cur.execute("INSERT INTO dim_request (attribute_id, attribute_name, attribute_value) VALUES ('%s', '%s', '%s')" % (current_time, bot_message['user_bullying'], user_bullying)) 
+    cur.execute("INSERT INTO dim_request (attribute_id, attribute_name, attribute_value) VALUES ('%s', '%s', '%s')" % (current_time, bot_message['user_violence'], user_violence)) 
+    cur.execute("INSERT INTO dim_request (attribute_id, attribute_name, attribute_value) VALUES ('%s', '%s', '%s')" % (current_time, bot_message['user_sexual_violence'], user_sexual_violence)) 
+    cur.execute("INSERT INTO dim_request (attribute_id, attribute_name, attribute_value) VALUES ('%s', '%s', '%s')" % (current_time, bot_message['bulllying_counter'], bulllying_counter))       
+    conn.commit()
+    cur.close()
+    conn.close()
+  except sqlite3.Error as ex:
+    print(ex)  
 
 try: 
     bot.polling(none_stop=True, interval=1)
-except Exception:
-    print("error")
+except Exception as ex:
+    print(ex)
 
 
