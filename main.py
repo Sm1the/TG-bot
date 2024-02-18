@@ -56,7 +56,7 @@ def startBot(message):
 
 
   
-
+#Обработчик первичного меню
 def on_click_menu(message):
   if message.text == bot_message['menu_text_1']:
       bullying_info_bot(message)
@@ -90,14 +90,14 @@ def user_data_accept(message):
       bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
       bot.register_next_step_handler(message, user_data_complite)
 
-#
+#Проверка на согласие пользователя на обработку данных
 def user_data_complite(message):
     if message.text == bot_message['yes']:
       get_user_name(message)
     if message.text == bot_message['no']:
       cancellation_confirmation(message)
 
-#
+#Подтверждение закрытие диалога из-за отказа от обработки личных данных
 def cancellation_confirmation(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['without_user_data_accept']}"
@@ -105,7 +105,7 @@ def cancellation_confirmation(message):
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, complite_cancellation_confirmation)
 
-#      
+#Обработчик отказа      
 def complite_cancellation_confirmation(message):
     if message.text == bot_message['no']:
       get_user_name(message)
@@ -119,12 +119,13 @@ def exit_bot(message):
       markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
       bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     
-#
+#Получение имени
 def get_user_name(message):
       menu_message = f"{bot_message['user_name']}"
       bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
       bot.register_next_step_handler(message, get_user_city)
 
+#Получение города
 def get_user_city(message):
     global user_name
     user_name = message.text.strip()
@@ -132,7 +133,7 @@ def get_user_city(message):
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_user_school)
     print(user_name)
-    
+#Получение школы    
 def get_user_school(message):
     global user_city
     user_city = message.text.strip()
@@ -140,7 +141,7 @@ def get_user_school(message):
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_user_bullying)
     print(user_city)
-    
+#Получение буллинга  
 def get_user_bullying(message):
     global user_school
     user_school = message.text.strip()
@@ -149,7 +150,7 @@ def get_user_bullying(message):
     markup.add(types.KeyboardButton(bot_message['yes']),types.KeyboardButton(bot_message['no']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, get_user_violence)
-   
+#Получение насилия   
 def get_user_violence(message):
     global user_bullying
     if message.text == bot_message['yes']:
@@ -161,7 +162,7 @@ def get_user_violence(message):
     markup.add(types.KeyboardButton(bot_message['yes']),types.KeyboardButton(bot_message['no']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, get_user_sexual_violence)
-      
+#Получение сексуального насилия    
 def get_user_sexual_violence(message):
     global user_violence
     if message.text == bot_message['yes']:
@@ -173,7 +174,7 @@ def get_user_sexual_violence(message):
     markup.add(types.KeyboardButton(bot_message['yes']),types.KeyboardButton(bot_message['no']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, get_user_bulllying_counter)
-    
+#Получение предложений от пользователя   
 def get_user_bulllying_counter(message):
     global user_sexual_violence
     if message.text == bot_message['yes']:
@@ -183,7 +184,7 @@ def get_user_bulllying_counter(message):
     menu_message = f"{bot_message['bulllying_counter']}"
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_pull_user_info)
-
+#Обработчик выбора загрузки файлов или отказ
 def get_pull_user_info(message):
     global bulllying_counter
     if(message.text != bot_message['upload_file']):
@@ -193,7 +194,7 @@ def get_pull_user_info(message):
     markup.add(types.KeyboardButton(bot_message['upload_file']), types.KeyboardButton(bot_message['without_file']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, select_user_send_file)
-
+#Обработчик типа файлов от пользователя
 def select_user_send_file(message):
     Path(bot_file_path['file_path'] + f'{message.chat.id}/').mkdir(parents=True, exist_ok=True)
     if message.content_type == 'photo':
@@ -228,14 +229,14 @@ def select_user_send_file(message):
     if message.text == bot_message['without_file']:
       close_user_request(message)
 
-
+#Обработчик корректного файла
 def user_correct_file(message):
   write_data_base()
   menu_message = f"{bot_message['correct_file']}"
   markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
   markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
   bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
-
+#Обработчик не корректного файла
 def file_does_not_match(message):
   write_data_base()
   menu_message = f"{bot_message['file_does_not_match']}"
@@ -243,7 +244,7 @@ def file_does_not_match(message):
   markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
   bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
   
-    
+#Обработчик закрытия диалога  
 def close_user_request(message):
     write_data_base()
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -251,7 +252,7 @@ def close_user_request(message):
     markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
  
-
+#Создание БД и проверка на дубликат или повреждения
 def start_data_base():
  # Connect to the database
   try:
@@ -264,7 +265,7 @@ def start_data_base():
     conn.close()
   except sqlite3.Error as ex:
     print(ex)  
-
+#Запись информации от пользователя в БД
 def write_data_base():  
   current_time = datetime.datetime.now() 
    # Connect to the database
@@ -284,7 +285,7 @@ def write_data_base():
     conn.close()
   except sqlite3.Error as ex:
     print(ex)  
-
+#Ограничитель на время обработки запросов от пользователей, в случае нагрузки изменить параметр interval на 2-5
 try: 
     bot.polling(none_stop=True, interval=1)
 except Exception as ex:
