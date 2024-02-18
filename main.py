@@ -2,14 +2,8 @@ import json
 import telebot
 import datetime
 import sqlite3
-
 from telebot import types
 from pathlib import Path
-
- 
-
-
-
 
 #Чтение ключа бота из json файла
 with open('token_api.json', 'r') as token_api:
@@ -23,12 +17,11 @@ with open('file_path.json', 'r', encoding='utf-8') as file_path:
 #Реализация соединения бота по ключу
 bot = telebot.TeleBot(bot_token['token_api'])
 
-#
+#Метод очистки пользовательских кнопок
 clear_unber_buttons = telebot.types.ReplyKeyboardRemove()
-
+#Для хранения id пользователя
 user_id = None
-
-#
+#Для хранения ответов от пользователя
 user_name = None
 user_city = None
 user_school = None
@@ -54,16 +47,12 @@ def startBot(message):
   bot.send_message(message.chat.id, first_message, parse_mode='html', reply_markup=markup)
   bot.register_next_step_handler(message, on_click_menu)
 
-
-  
 #Обработчик первичного меню
 def on_click_menu(message):
   if message.text == bot_message['menu_text_1']:
-      bullying_info_bot(message)
-    
+      bullying_info_bot(message)   
   if message.text == bot_message['menu_text_2']:
-      user_data_accept(message)
-    
+      user_data_accept(message)   
   if message.text == bot_message['menu_text_3']:
       exit_bot(message)
 
@@ -80,8 +69,8 @@ def on_click_bullying_menu(message):
     if message.text == bot_message['menu_text_2']:
       user_data_accept(message)
     if message.text == bot_message['menu_text_3']:
-      exit_bot(message)
-      
+      exit_bot(message)     
+
 #Метод создания заявки     
 def user_data_accept(message):
       markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -117,8 +106,8 @@ def exit_bot(message):
       markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
       menu_message = f"{bot_message['exit_message']}"
       markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
-      bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
-    
+      bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)    
+
 #Получение имени
 def get_user_name(message):
       menu_message = f"{bot_message['user_name']}"
@@ -133,6 +122,7 @@ def get_user_city(message):
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_user_school)
     print(user_name)
+
 #Получение школы    
 def get_user_school(message):
     global user_city
@@ -141,6 +131,7 @@ def get_user_school(message):
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_user_bullying)
     print(user_city)
+
 #Получение буллинга  
 def get_user_bullying(message):
     global user_school
@@ -150,6 +141,7 @@ def get_user_bullying(message):
     markup.add(types.KeyboardButton(bot_message['yes']),types.KeyboardButton(bot_message['no']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, get_user_violence)
+
 #Получение насилия   
 def get_user_violence(message):
     global user_bullying
@@ -162,6 +154,7 @@ def get_user_violence(message):
     markup.add(types.KeyboardButton(bot_message['yes']),types.KeyboardButton(bot_message['no']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, get_user_sexual_violence)
+
 #Получение сексуального насилия    
 def get_user_sexual_violence(message):
     global user_violence
@@ -174,6 +167,7 @@ def get_user_sexual_violence(message):
     markup.add(types.KeyboardButton(bot_message['yes']),types.KeyboardButton(bot_message['no']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, get_user_bulllying_counter)
+
 #Получение предложений от пользователя   
 def get_user_bulllying_counter(message):
     global user_sexual_violence
@@ -184,6 +178,7 @@ def get_user_bulllying_counter(message):
     menu_message = f"{bot_message['bulllying_counter']}"
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_pull_user_info)
+
 #Обработчик выбора загрузки файлов или отказ
 def get_pull_user_info(message):
     global bulllying_counter
@@ -194,6 +189,7 @@ def get_pull_user_info(message):
     markup.add(types.KeyboardButton(bot_message['upload_file']), types.KeyboardButton(bot_message['without_file']))
     bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
     bot.register_next_step_handler(message, select_user_send_file)
+
 #Обработчик типа файлов от пользователя
 def select_user_send_file(message):
     Path(bot_file_path['file_path'] + f'{message.chat.id}/').mkdir(parents=True, exist_ok=True)
@@ -208,7 +204,7 @@ def select_user_send_file(message):
           bot.register_next_step_handler(message, user_correct_file)
         else:
           file_does_not_match(message)   
-
+          
     if message.content_type == 'video':
         file_info = bot.get_file(message.video.file_id)
         file_size = int(message.json['video']['file_size'])
@@ -236,6 +232,7 @@ def user_correct_file(message):
   markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
   markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
   bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
+
 #Обработчик не корректного файла
 def file_does_not_match(message):
   write_data_base()
@@ -265,6 +262,7 @@ def start_data_base():
     conn.close()
   except sqlite3.Error as ex:
     print(ex)  
+
 #Запись информации от пользователя в БД
 def write_data_base():  
   current_time = datetime.datetime.now() 
@@ -285,6 +283,7 @@ def write_data_base():
     conn.close()
   except sqlite3.Error as ex:
     print(ex)  
+
 #Ограничитель на время обработки запросов от пользователей, в случае нагрузки изменить параметр interval на 2-5
 try: 
     bot.polling(none_stop=True, interval=1)
