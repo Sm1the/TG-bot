@@ -30,6 +30,13 @@ user_violence = None
 user_sexual_violence = None
 bulllying_counter = None
 
+CONTENT_TYPES = ["text", "audio", "document", "sticker", "video_note", "voice", "location", "contact",
+                 "new_chat_members", "left_chat_member", "new_chat_title", "new_chat_photo", "delete_chat_photo",
+                 "group_chat_created", "supergroup_chat_created", "channel_chat_created", "migrate_to_chat_id",
+                 "migrate_from_chat_id", "pinned_message"]
+
+current_time = datetime.datetime.now()
+print("Bot turn on :", current_time)
 #Метод стартового меню и входа в общение с ботом
 @bot.message_handler(commands=['start'])
 def startBot(message):
@@ -121,7 +128,7 @@ def get_user_city(message):
     menu_message = f"{bot_message['user_city']}"
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_user_school)
-    print(user_name)
+
 
 #Получение школы    
 def get_user_school(message):
@@ -130,7 +137,7 @@ def get_user_school(message):
     menu_message = f"{bot_message['user_school']}"
     bot.send_message(message.from_user.id, menu_message, parse_mode='html', reply_markup=clear_unber_buttons) 
     bot.register_next_step_handler(message, get_user_bullying)
-    print(user_city)
+
 
 #Получение буллинга  
 def get_user_bullying(message):
@@ -192,6 +199,10 @@ def get_pull_user_info(message):
 
 #Обработчик типа файлов от пользователя
 def select_user_send_file(message):
+  if message.content_type != 'photo':
+    if message.content_type != 'video':
+      file_does_not_match(message)
+    
     Path(bot_file_path['file_path'] + f'{message.chat.id}/').mkdir(parents=True, exist_ok=True)
     if message.content_type == 'photo':
         file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
@@ -202,8 +213,6 @@ def select_user_send_file(message):
           with open(src, 'wb') as new_file:
               new_file.write(downloaded_file)
           bot.register_next_step_handler(message, user_correct_file)
-        else:
-          file_does_not_match(message)   
           
     if message.content_type == 'video':
         file_info = bot.get_file(message.video.file_id)
@@ -216,8 +225,6 @@ def select_user_send_file(message):
           menu_message = f"{bot_message['wait_for_download']}"
           bot.send_message(message.chat.id, menu_message, parse_mode='html') 
           bot.register_next_step_handler(message, user_correct_file)
-        else:
-          file_does_not_match(message)  
            
     if message.text == bot_message['upload_file']:
       get_pull_user_info(message)  
@@ -235,11 +242,11 @@ def user_correct_file(message):
 
 #Обработчик не корректного файла
 def file_does_not_match(message):
-  write_data_base()
-  menu_message = f"{bot_message['file_does_not_match']}"
-  markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-  markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
-  bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup)
+      write_data_base()
+      menu_message = f"{bot_message['file_does_not_match']}"
+      markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+      markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
+      bot.send_message(message.chat.id, menu_message, parse_mode='html', reply_markup=markup) 
   
 #Обработчик закрытия диалога  
 def close_user_request(message):
@@ -265,7 +272,6 @@ def start_data_base():
 
 #Запись информации от пользователя в БД
 def write_data_base():  
-  current_time = datetime.datetime.now() 
    # Connect to the database
   try:
     conn = sqlite3.connect('safechild.sql')
@@ -283,6 +289,7 @@ def write_data_base():
     conn.close()
   except sqlite3.Error as ex:
     print(ex)  
+  print(current_time,'new request from', user_id)
 
 #Ограничитель на время обработки запросов от пользователей, в случае нагрузки изменить параметр interval на 2-5
 try: 
