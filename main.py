@@ -30,13 +30,10 @@ user_violence = None
 user_sexual_violence = None
 bulllying_counter = None
 
-CONTENT_TYPES = ["text", "audio", "document", "sticker", "video_note", "voice", "location", "contact",
-                 "new_chat_members", "left_chat_member", "new_chat_title", "new_chat_photo", "delete_chat_photo",
-                 "group_chat_created", "supergroup_chat_created", "channel_chat_created", "migrate_to_chat_id",
-                 "migrate_from_chat_id", "pinned_message"]
-
 current_time = datetime.datetime.now()
+
 print("Bot turn on :", current_time)
+
 #Метод стартового меню и входа в общение с ботом
 @bot.message_handler(commands=['start'])
 def startBot(message):
