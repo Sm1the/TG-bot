@@ -32,7 +32,7 @@ bulllying_counter = None
 
 current_time = datetime.datetime.now()
 
-print("Bot turn on :", current_time)
+
 
 #Метод стартового меню и входа в общение с ботом
 @bot.message_handler(commands=['start'])
@@ -196,10 +196,6 @@ def get_pull_user_info(message):
 
 #Обработчик типа файлов от пользователя
 def select_user_send_file(message):
-  if message.content_type != 'photo':
-    if message.content_type != 'video':
-      file_does_not_match(message)
-    
     Path(bot_file_path['file_path'] + f'{message.chat.id}/').mkdir(parents=True, exist_ok=True)
     if message.content_type == 'photo':
         file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
@@ -210,18 +206,19 @@ def select_user_send_file(message):
           with open(src, 'wb') as new_file:
               new_file.write(downloaded_file)
           bot.register_next_step_handler(message, user_correct_file)
-          
-    if message.content_type == 'video':
-        file_info = bot.get_file(message.video.file_id)
-        file_size = int(message.json['video']['file_size'])
-        if (file_size < 268435456):
-          downloaded_file = bot.download_file(file_info.file_path)
-          src = bot_file_path['file_path'] + f'{message.chat.id}/' + file_info.file_path.replace('videos/', '')
-          with open(src, 'wb') as new_file:
+    elif message.content_type == 'video':
+          file_info = bot.get_file(message.video.file_id)
+          file_size = int(message.json['video']['file_size'])
+          if (file_size < 268435456):
+            downloaded_file = bot.download_file(file_info.file_path)
+            src = bot_file_path['file_path'] + f'{message.chat.id}/' + file_info.file_path.replace('videos/', '')
+            with open(src, 'wb') as new_file:
               new_file.write(downloaded_file)
-          menu_message = f"{bot_message['wait_for_download']}"
-          bot.send_message(message.chat.id, menu_message, parse_mode='html') 
-          bot.register_next_step_handler(message, user_correct_file)
+            menu_message = f"{bot_message['wait_for_download']}"
+            bot.send_message(message.chat.id, menu_message, parse_mode='html') 
+            bot.register_next_step_handler(message, user_correct_file)
+    else:
+          file_does_not_match(message)
            
     if message.text == bot_message['upload_file']:
       get_pull_user_info(message)  
@@ -289,7 +286,8 @@ def write_data_base():
   print(current_time,'new request from', user_id)
 
 #Ограничитель на время обработки запросов от пользователей, в случае нагрузки изменить параметр interval на 2-5
-try: 
+try:
+    print("Bot turn on :", current_time) 
     bot.polling(none_stop=True, interval=1)
 except Exception as ex:
     print(ex)
