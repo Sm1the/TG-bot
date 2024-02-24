@@ -206,6 +206,8 @@ def select_user_send_file(message):
           with open(src, 'wb') as new_file:
               new_file.write(downloaded_file)
           bot.register_next_step_handler(message, user_correct_file)
+        else:
+            file_does_not_match(message) 
     elif message.content_type == 'video':
           file_info = bot.get_file(message.video.file_id)
           file_size = int(message.json['video']['file_size'])
@@ -217,6 +219,8 @@ def select_user_send_file(message):
             menu_message = f"{bot_message['wait_for_download']}"
             bot.send_message(message.chat.id, menu_message, parse_mode='html') 
             bot.register_next_step_handler(message, user_correct_file)
+          else:
+            file_does_not_match(message)  
     else:
           file_does_not_match(message)
            
