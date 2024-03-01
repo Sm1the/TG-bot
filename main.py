@@ -32,8 +32,6 @@ bulllying_counter = None
 
 current_time = datetime.datetime.now()
 
-
-
 #Метод стартового меню и входа в общение с ботом
 @bot.message_handler(commands=['start'])
 def startBot(message):
