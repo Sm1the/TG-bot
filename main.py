@@ -194,6 +194,7 @@ def get_pull_user_info(message):
 
 #Обработчик типа файлов от пользователя
 def select_user_send_file(message):
+    write_data_base()
     Path(bot_file_path['file_path'] + f'{message.chat.id}/').mkdir(parents=True, exist_ok=True)
     if message.content_type == 'photo':
         file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
@@ -230,7 +231,6 @@ def select_user_send_file(message):
 
 #Обработчик корректного файла
 def user_correct_file(message):
-  write_data_base()
   menu_message = f"{bot_message['correct_file']}"
   markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
   markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
@@ -238,7 +238,6 @@ def user_correct_file(message):
 
 #Обработчик не корректного файла
 def file_does_not_match(message):
-      write_data_base()
       menu_message = f"{bot_message['file_does_not_match']}"
       markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
       markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
@@ -246,7 +245,6 @@ def file_does_not_match(message):
   
 #Обработчик закрытия диалога  
 def close_user_request(message):
-    write_data_base()
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     menu_message = f"{bot_message['close_user_request']}"
     markup.add(types.KeyboardButton(text = bot_message['exit_message_callback']))
